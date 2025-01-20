@@ -8,10 +8,10 @@ output: html_document
 # Group Members
 
 Amyre Wells 20320047
-
-kyle Samson 20294258
-
-Matteo Ienzi 20270101
+Mackenzie Calhoun 20265644
+Autumn Hodgins 20270064
+Kyle Samson (20294258)
+Matteo Ienzi (20270101)
 
 
 Part 1
