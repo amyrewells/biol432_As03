@@ -48,21 +48,37 @@ any(is.na(Data))
 #check for nas
 any(is.na(Data))
 #removed the NAs and replaced them with thee means 
-data_clean <- Data %>%
+Data_clean <- Data %>%
   mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)))
-data_clean
+Data_clean
 ```
 
 Check Normality 
 ```{r}
-for (i in names(Data)[8:ncol(Data)]) { #iterate through column names from 8 on
-  print(ggplot(Data, aes(x = !!sym(i))) + #plot column name
+for (i in names(Data_clean)[8:ncol(Data_clean)]) { #iterate through column names from 8 on
+  print(ggplot(Data_clean, aes(x = !!sym(i))) + #plot column name
     geom_histogram())
 }
 ```
 
 ## 3
 #### Scale Variables
+
+```{r}
+
+Data_log <- Data_clean
+Data_log[,c(8:23)] <- log(Data_clean[,c(8:23)]+1)
+
+
+Scaled <- Data_log %>% # z-scaled column 8 onwards
+  mutate(across("Flwr07":"InfMass10", ~ scale(.)[, 1]))
+
+
+for (i in names(Scaled)[8:ncol(Scaled)]) { #iterate through column names from 8 on
+  print(ggplot(Scaled, aes(x = !!sym(i))) + #plot column name
+    geom_histogram())
+}
+```
 
 #### Explain Scaling Choice
 
