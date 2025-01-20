@@ -9,18 +9,28 @@ output: html_document
 The dataset we are using is the same as the PCA Tutorial: https://colauttilab.github.io/Data/ColauttiBarrett2013Data.csv
 
 1. Set up your R Markdown document and load and the data. Don’t forget to install the MASS, klaR and caret packages on your computer, and then load them in the R markdown.
+
 2. Inspect data and then report anomalies including departures from normality and missing data. Decide how to fix the data and report your decision. Hint: Recall that we covered how to deal with missing data for this dataset in the PCA Tutorial. 
+
 3. Scale your variables. Again, you may choose to use the same method as in the PCA Tutorial, the Discriminant Analysis tutorial or a new method. Be sure to explain which scaling method you used and why.
+
 4. In the Discriminant Analysis Tutorial we went through the process of writing linear models to select appropriate features. Briefly explain why that is not necessary for this data set.
+
 5. Create separate data sets for your features (i.e., predictors) and classifying (i.e., response) variables.
 
 ## Part II: LDA
 Recall in the PCA Tutorial that PC1 distinguished genetic populations and PC2 distinguished common garden sites. However, it was difficult for us to determine which traits contributed to these major axes of variation. Fortunately, we can use discriminant analysis to look at which features best distinguish the genetic populations and different growing sites within the common garden.
 
 1. Use the lda() function in the MASS package to run one or more LDA model(s) that distinguish genetic populations and regions.
+
 2. Explain how many LD axes you need to distinguish among the three sites, and among the six populations.
+
 3. Explore the objects in your LD models. What does the $scaling slice show you? How does this relate to the LD eigenvectors? Briefly explain the difference between the PC axes of a PCA and the LD axes of an LDA.
+
 4. Use the predict() function to obtain the LDA scores.
+
 5. Write some text to explain what you learned about the Lythrum data from your LDA models. Compare results to the PCA results and projection of loadings in the PCA Tutorial. Which traits distinguish genetic populations and regions best, respectively? Formulate biological hypotheses to explain the LDA results. If you need a refresher on this experiment, recall that we also used it in the GAM Chapter in R Stats Crash Course book on Perusall.
+
 6. Explain how you could use an RDA to try to improve the accuracy of the predictions relative to an RDA. Contrast the RDA with LDA and describe the major steps and R functions you would use. 
+
 7. Explain how you could assess the accuracy of a model if the data were heavily imbalanced (e.g., 90% of observations were from a single Lythrum population).
