@@ -9,6 +9,8 @@ output: html_document
 
 Amyre Wells 20320047
 
+kyle Samson 20294258
+
 # Part 1
 ## 1
 #### Load Packages
