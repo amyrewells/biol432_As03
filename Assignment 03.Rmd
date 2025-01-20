@@ -9,9 +9,10 @@ output: html_document
 
 Amyre Wells 20320047
 Mackenzie Calhoun 20265644
-Autumn Hodgins 20270064
-Kyle Samson (20294258)
-Matteo Ienzi (20270101)
+Kyle Samson 20294258
+Matteo Ienzi 20270101
+Abigail Kaye 20271241
+Maddigan Kales 20259834
 
 
 Part 1
