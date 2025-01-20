@@ -13,22 +13,52 @@ kyle Samson 20294258
 
 Matteo Ienzi 20270101
 
-# Part 1
-## 1
-#### Load Packages
 
-#### Load Data
+Part 1
+1
+Load Packages
+Load Data
+
+```{r}
+Data=read.csv("https://colauttilab.github.io/Data/ColauttiBarrett2013Data.csv",header=T)
+library(ggplot2)
+library(dplyr)
+library (tidyr)
+library(MASS)
+library(klaR)
+library(caret)
+```
+
+2
+Inspect Data
+Check Normality 
+Report Anomalies
+Fix Anomalies
+
+```{r}
+head(Data)
+tail(Data)
+dim(Data)
+summary(Data)
+str(Data)
+any(is.na(Data))
 
 
-## 2
-#### Inspect Data
+#check for nas
+any(is.na(Data))
+#removed the NAs and replaced them with thee means 
+data_clean <- Data %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+data_clean
+```
 
-#### Check Normality 
-
-#### Report Anomalies
-
-#### Fix Anomalies
-
+Check Normality 
+```{r}
+for (i in names(Data)[8:ncol(Data)]) { #iterate through column names from 8 on
+  print(ggplot(Data, aes(x = !!sym(i))) + #plot column name
+    geom_histogram())
+}
+```
 
 ## 3
 #### Scale Variables
