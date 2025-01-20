@@ -1,0 +1,64 @@
+---
+title: "Assignment 03"
+author: "Amyre"
+date: "2025-01-20"
+output: html_document
+---
+
+# Group Members
+
+Amyre Wells 20320047
+
+# Part 1
+## 1
+#### Load Packages
+
+#### Load Data
+
+
+## 2
+#### Inspect Data
+
+#### Check Normality 
+
+#### Report Anomalies
+
+#### Fix Anomalies
+
+
+## 3
+#### Scale Variables
+
+#### Explain Scaling Choice
+
+
+## 4
+#### Feature Selection Explanation
+
+## 5
+#### Data Splitting
+
+
+# Part 2
+## 1
+#### Run LDAs
+
+
+## 2
+#### LD Axis Explanation
+
+
+## 3
+#### Explore LD object
+
+
+## 4
+#### Obtain LDA Scores
+
+## 5
+
+
+## 6
+
+
+## 7
