@@ -61,8 +61,8 @@ for (i in names(Data_clean)[8:ncol(Data_clean)]) { #iterate through column names
 }
 ```
 
-## 3
-#### Scale Variables
+3
+Scale Variables
 
 ```{r}
 
@@ -70,18 +70,18 @@ Data_log <- Data_clean
 Data_log[,c(8:23)] <- log(Data_clean[,c(8:23)]+1)
 
 
-Scaled <- Data_log %>% # z-scaled column 8 onwards
+Data_scaled <- Data_log %>% # z-scaled column 8 onwards
   mutate(across("Flwr07":"InfMass10", ~ scale(.)[, 1]))
 
 
-for (i in names(Scaled)[8:ncol(Scaled)]) { #iterate through column names from 8 on
-  print(ggplot(Scaled, aes(x = !!sym(i))) + #plot column name
+for (i in names(Data_scaled)[8:ncol(Data_scaled)]) { #iterate through column names from 8 on
+  print(ggplot(Data_scaled, aes(x = !!sym(i))) + #plot column name
     geom_histogram())
 }
 ```
 
-#### Explain Scaling Choice
-
+-Explain Scaling Choice-
+Z-scaling is used in step 3 because it allows for comparison of standardized variables amongst each other. Additionally, z-scaling ensure all features are equal which allows the machine learning algorithm to isolate clear patterns*
 
 ## 4
 #### Feature Selection Explanation
@@ -89,27 +89,99 @@ for (i in names(Scaled)[8:ncol(Scaled)]) { #iterate through column names from 8 
 ## 5
 #### Data Splitting
 
+```{r}
+predictors<- Data_scaled[, 8:ncol(Data_scaled)] #columns 8 and on
+response <- Data_scaled[, 6:7] # columns 6 and 7
+
+
+#inspect new data frames
+head(predictors)
+tail(predictors)
+dim(predictors)
+summary(predictors)
+
+
+head(response)
+tail(response)
+dim(response)
+summary(response)
+```
+
 
 # Part 2
 ## 1
 #### Run LDAs
 
+```{r}
+library(MASS)
+library(dplyr)
+library(ggplot2)
+
+features <- Data_scaled %>%
+  dplyr::select(where(is.numeric))
+
+region_response <- Data_scaled$Region
+pop_response <- Data_scaled$Pop
+
+scaled_features <- as.data.frame(scale(features))
+
+lda_region <- lda(region_response ~ ., data = scaled_features)
+
+lda_pop <- lda(pop_response ~ ., data = scaled_features)
+
+lda_region
+lda_pop
+
+summary(lda_region)
+
+lda_region$scaling
+
+region_pred <- predict(lda_region)
+
+table(Predicted = region_pred$class, Actual = region_response)
+
+pop_pred <- predict(lda_pop)
+
+table(Predicted = pop_pred$class, Actual = pop_response)
+
+region_scores <- data.frame(region_pred$x, Region = region_response)
+
+ggplot(region_scores, aes(x = LD1, y = LD2, color = Region)) +
+  geom_point() +
+  labs(title = "LDA: Region Classification", x = "LD1", y = "LD2") +
+  theme_minimal()
+```
+
 
 ## 2
 #### LD Axis Explanation
-
+3*6 = 18, (18-1 = 17)
 
 ## 3
 #### Explore LD object
+Printing the scaling slices prints a matrix array with predictor variables on the y axis and LD groups on the x axis. Each cell represents the coefficient or weight of the predictor variable in the discriminant axis. Values closer to zero have less weight/affect on the LD axis. The sign of the value indicates the direction of the relationship.
+The eigenvector illustrates the direction of class separability. To calculate the linear discriminants, scaling applies them to the original features. Each column of scaling represents a scaled eigenvector. The first column shows the eigenvector associated with the greatest eigenvalue. Eigenvalues association decreases to the right.
+The number of PC axes is the number of features and the number of LD axes is the number of groups minus one. The goal of PC axes is to find the directions of maximum variance in the data. The goal of LD axes is to find the linear discriminants that maximize the separation between predefined classes while minimizing the variance within each class. 
 
 
 ## 4
 #### Obtain LDA Scores
 
+
+
 ## 5
 
 
 ## 6
-
+Redundancy Analysis (RDA) improves prediction accuracy by combining regression and dimensionality reduction. Unlike linear discriminant analysis (LDA), which focuses on separating groups based on categorical response variables, RDA relates predictors to response variables and captures patterns in both continuous and categorical data. Overall, this makes RDA more flexible than LDA especially when dealing with data that violates LDA assumptions such as multivariate datasets. 
 
 ## 7
+Inaccuracy of a model can be illustrated by distorted values due to the use of the discriminant analysis algorithm that is used to predict majority classes (in this case would be misleadingly high and/or low). 
+To assess the accuracy of a model when dealing with a heavily imbalanced dataset, it's ideal to validate the model using a separate validation model which uses a separate validation dataset (that is not included during the model fitting). We can do this by creating a confusion matrix which is an example of parameter estimation.
+
+The data that is used in a confusion matrix is the data that was kept separate and not included in any of the model fitting code. We first have to predict the classes for our validation set, using the model generated from our Training set
+
+Not only that but we could also use Cohen’s Kappa. Cohen’s Kappa is a statistical metric that measures the level of agreement between predicted and observed classifications while accounting for the agreement that might occur by chance. Unlike traditional accuracy, which simply calculates the proportion of correct predictions, Cohen’s Kappa provides a more nuanced evaluation, especially for imbalanced datasets where high accuracy may be misleading due to the dominance of one class.
+
+Finally, to further examine this issue, true positives and false negatives amongst the minority classes can be assessed. For example, by calculating the proportion of predicted positives for a specific class to the number of true positives obtained using the model. 
+
