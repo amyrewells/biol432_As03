@@ -1,0 +1,241 @@
+---
+title: "Final Version Assignment 03"
+author: "Amyre"
+date: "2025-01-21"
+output: html_document
+---
+
+
+# Group Members
+
+Amyre Wells 20320047
+
+Mackenzie Calhoun 20265644
+
+Kyle Samson 20294258
+
+Matteo Ienzi 20270101
+
+Abigail Kaye 20271241
+
+Maddigan Kales 20259834
+
+# Part 1
+
+## Question 1
+
+#### Load Packages
+
+```{r}
+library(MASS)
+library (klaR)
+library(caret)
+library(dplyr)
+```
+
+#### Load Data
+
+```{r}
+data<- read.csv("./ColauttiBarrett2013Data.csv")
+```
+
+## Question 2
+
+#### Inspect Data
+
+```{r}
+#check data structure
+head(data)
+tail(data)
+dim(data)
+summary(data) #checks for outliers
+str(data)
+
+#check for nas
+any(is.na(data))
+```
+
+#### Check Normality
+
+```{r}
+for (i in names(data)[8:ncol(data)]) { #iterate through column names from 8 on
+  print(ggplot(data, aes(x = !!sym(i))) + #plot column name
+    geom_histogram())
+}
+```
+
+
+#### Report Anomalies
+
+-   site, row, pos, mat, pop and region can all be factors
+-   Fruits07 seems to have outliers/ weird distribution
+-   there are many NAs
+-   InfMass07, Fruits07, InfMass08, InfMass09, Flwr10, and InfMass10 all look like they could benefit from log transformation
+
+#### Fix Anomalies
+
+```{r}
+#recode as factors
+data <- data %>% 
+  mutate(Site = as.factor(Site)) %>% 
+  mutate(Row = as.factor(Row)) %>% 
+  mutate(Pos = as.factor(Pos)) %>% 
+  mutate(Mat = as.factor(Mat)) %>% 
+  mutate(Pop = as.factor(Pop)) %>% 
+  mutate(Region = as.factor(Region))
+
+#confirm new data structure
+str(data)
+```
+
+Fruits07 seems to have a heavily log distribution, not one outlier that needs to be removed
+
+```{r}
+#replace NAs with column mean
+data_clean <- data %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+
+#confirm removed nas
+any(is.na(data_clean))
+```
+
+```{r}
+#log transform specified columns
+data_clean <- data_clean %>% 
+  mutate(InfMass07 = log(InfMass07+1)) %>% 
+  mutate(Fruits07 = log(Fruits07+1)) %>% 
+  mutate(InfMass08 = log(InfMass08+1)) %>% 
+  mutate(InfMass09 = log(InfMass09+1)) %>% 
+  mutate(Flwr10 = log(Flwr10+1)) %>% 
+  mutate(InfMass10 = log(InfMass10+1))
+
+#check new normality
+for (i in names(data_clean)[8:ncol(data_clean)]) { #iterate through column names from 8 on
+  print(ggplot(data_clean, aes(x = !!sym(i))) + #plot column name
+    geom_histogram())
+}
+
+```
+
+
+## Question 3
+
+#### Scale Variables
+
+```{r}
+ # z-scaled column 8 onwards (response variables)
+data_scaled <- data_clean %>%
+  mutate(across("Flwr07":"InfMass10", ~ scale(.)[, 1]))
+```
+
+#### Explain Scaling Choice
+
+We will be z-transforming the data, as the data does not contain any significant outliers, so it should be sufficient to subtract the means and divide by the standard deviation to ensure all the values are comparable. Z-scaling is used in step 3 because it allows for comparison of standardized variables amongst each other. Additionally, z-scaling ensure all features are equal which allows the machine learning algorithm to isolate clear patterns
+
+## Question 4
+
+#### Feature Selection Explanation
+
+Writing linear models to select appropriate features is often used to identify the most predictive variables or eliminate irrelevant ones, ensuring better model performance and interpretability. However with this data there are no redundant or irrelevant features as the dataset in this case only has features that are meaningful for distinguishing between groups. Linear models are used to filter out predictors that do not contribute significantly to the variance between groups but as mentioned all of the features here are biologically relevant and useful.
+
+## Question 5
+
+#### Split Predictors and Response
+
+```{r}
+predictors<- data_scaled[, 8:ncol(data_scaled)] #columns 8 and on
+response <- data_scaled[, 6:7] # columns 6 and 7
+
+#inspect new data frames
+head(predictors)
+tail(predictors)
+dim(predictors)
+summary(predictors)
+
+head(response)
+tail(response)
+dim(response)
+summary(response)
+```
+
+
+# Part 2
+
+## Question 1
+
+#### Run LDAs
+
+```{r}
+#LDA with Pop as response
+lda_Pop<- lda(x=predictors, grouping= response$Pop)
+
+#LDA with Region as response
+lda_Region<- lda(x=predictors, grouping= response$Region)
+```
+
+## Question 2
+
+#### LD Axes Explanation
+
+The number of LD axes = number of groups minus one. For 3 sites you'd need 2 axes to distinguish among them and for six populations you'd need 5 axes. If you wanted to distinguish among sites and populations at the same time that would be 18 combinations so you would need 17 axes.
+
+## Question 3
+
+#### Explore LD objects
+
+```{r}
+print(lda_Pop$scaling)
+print(lda_Region$scaling)
+
+class(lda_Pop$scaling)
+class(lda_Region$scaling)
+
+dim(lda_Pop$scaling)
+dim(lda_Region$scaling)
+```
+
+
+Printing the scaling slices prints a matrix array with predictor variables on the y axis and LD groups on the x axis. Each cell represents the coefficient or weight of the predictor variable in the discriminant axis. Values closer to zero have less weight/affect on the LD axis. The sign of the value indicates the direction of the relationship.
+
+The eigenvector illustrates the direction of class separability. To calculate the linear discriminants, scaling applies them to the original features. Each column of scaling represents a scaled eigenvector. The first column shows the eigenvector associated with the greatest eigenvalue. Eigenvalues association decreases to the right.
+
+The number of PC axes is the number of features and the number of LD axes is the number of groups minus one. The goal of PC axes is to find the directions of maximum variance in the data. The goal of LD axes is to find the linear discriminants that maximize the separation between predefined classes while minimizing the variance within each class.
+
+## Question 4
+
+#### Obtain LDA Scores
+
+```{r}
+#predict lda_Pop scores
+Pop_scores<- predict(lda_Pop)
+head(Pop_scores$x)
+
+#predict lda_Region scores
+Region_scores<- predict(lda_Region)
+head(Region_scores$x)
+```
+
+## Question 5
+
+FVeg10 contributes most to Population separation in the LD1 axis (scaling=0.4734).
+
+Flwr08, InfMass08, and InfMass09 all highly contribute to Region seperation in the LD1 axis (scaling\> 0.6).
+
+Our hypothesis is that in the years 2008 and 2009, environmental conditions varried greatly between different regions, leading to the different phenotypic expressions in InfMass. 
+
+
+## Question 6
+
+The RDA uses two tuning parameters, which tune between the LDA and the QDA to find the model with the best fit within a range of models. To run the RDA, we have to determine which values to set for 𝛾 and 𝜆. Instead of manually doing a grid search or a random search, we can use the train function from the caret package to automate this process. To do this we will first create a trainControl object  which will set the method to Leave-One-Out Cross Validation, classProbs to T and verboseInter to F. After that we can check the structure of the object to see all the parameters that have been set. Then we can use the trainContorl object we created as the input to the train function. The output of the function will give us kappa, which is different combinations of values for the tuning parameters. The kappa metric scales from -1 to 1 and is representative of model accuracy. Visualizing the all the potential 𝛾 and 𝜆 in ggplot, allows us to determine the tuning parameters and assess which type of model is best.
+
+## Question 7
+
+Inaccuracy of a model can be illustrated by distorted values due to the use of the discriminant analysis algorithm that is used to predict majority classes (in this case would be misleadingly high and/or low). To assess the accuracy of a model when dealing with a heavily imbalanced dataset, it's ideal to validate the model using a separate validation model which uses a separate validation dataset (that is not included during the model fitting). We can do this by creating a confusion matrix which is an example of parameter estimation.
+
+The data that is used in a confusion matrix is the data that was kept separate and not included in any of the model fitting code. We first have to predict the classes for our validation set, using the model generated from our Training set.
+
+Not only that but we could also use Cohen’s Kappa. Cohen’s Kappa is a statistical metric that measures the level of agreement between predicted and observed classifications while accounting for the agreement that might occur by chance. Unlike traditional accuracy, which simply calculates the proportion of correct predictions, Cohen’s Kappa provides a more nuanced evaluation, especially for imbalanced datasets where high accuracy may be misleading due to the dominance of one class. To further examine this issue, true positives and false negatives amongst the minority classes can be assessed. For example, by calculating the proportion of predicted positives for a specific class to the number of true positives obtained using the model.
+
+
+
+
